@@ -47,19 +47,25 @@ def prepare_mnist(path):
 
 ### 2 - SVM MODEL ##########################################
 
+# Fonctions classiques permettant de mesurer les performances du modèle
+def loss01(yhat, y):
+	return np.mean(yhat != y)
+# def accuracy(yhat, y):
+# 	 return 1 - loss01(yhat, y)
+
 # Regularized SVM loss function
-def svm_loss(lambda_, C_, w, X, y):
+def svm_loss(lambda_, w, X, y):
 	"""
 		* X: data to classify
 		* y: the corresponding labels
 		return: the loss of the trained model
 	"""
-	hinge_term = C_ * np.mean(np.maximum(0., y * (X @ w)))
-	reg_term = (lambda_/2) * np.norm(w)**2
+	hinge_term = np.mean(np.maximum(0., 1 - y * (X @ w)))
+	reg_term = (lambda_/2) * np.linalg.norm(w)**2
 	return hinge_term + reg_term
 
 # Function computing the gradient of the loss function
-def grad(w, C, X, y):
+def grad(w, lambda_, X, y):
 	"""
 		* X: data to classify
 		* y: the corresponding labels
@@ -67,28 +73,22 @@ def grad(w, C, X, y):
 	"""
 	res = np.zeros(w.shape[0])
 	for i in range(X.shape[0]):
-		if y[i] * (X[i] @ w) <= 1:
-			res -= C * y[i] * X[i]
-	return np.array(res) + w
+		if y[i] * (X[i] @ w) >= 1:
+			res -= y[i] * X[i] / X.shape[0]
+	return np.array(res) + lambda_ * w
 
 
 class mySVM:
 
-	def __init__(self, lambda_, C, n_iter, gradient_descent, learning_rate):
+	def __init__(self, lambda_, n_iter, learning_rate, optim_method):
 		self.lbd = lambda_
-		self.C = C
+		self.optim = optim_method
 		self.epochs = n_iter
-		self.GD = gradient_descent
 		self.lr = learning_rate
 
-	def fit(self, X, y):
-		"""
-			* X: train covariates
-			* y: train labels
-			return: the model trained with the chosen GD algorithm
-		"""
-		self.coef = self.GD(self.epochs, self.lr, grad, X, y, self.C)
-		return self
+	def ugd_update(self, w, t, grad, X, y):
+		w -= self.lr[t] * grad(w, self.lbd, X, y)
+		return w
 	
 	def decision_function(self, X):
 		"""
@@ -104,13 +104,37 @@ class mySVM:
 		"""
 		return 2 * (self.decision_function(X) > 0) - 1
 
+	def fit(self, X, y):
+		"""
+			* X: train covariates
+			* y: train labels
+			return: the model trained with the chosen GD algorithm
+		"""
+		self.coef = np.zeros(X.shape[1])
+		res = [[], []]
+		for t in range(self.epochs):
+			if self.optim == 'ugd':
+				self.coef = self.ugd_update(self.coef, t, grad, X, y)
+			loss1 = svm_loss(self.lbd, self.coef, X, y)
+			loss2 = loss01(self.predict(X), y)
+			res[0].append(loss1)
+			res[1].append(loss2)
+			print(f"Iteration {t+1}: svm loss={loss1} ;  0-1 loss={loss2}")
+		return np.array(res)
 
 
 
-# Fonctions classiques permettant de mesurer les performances du modèle
+def plot_perf(fig, ax, res):
+	loss1, loss2 = res[0], res[1]
+	xaxis = np.array([i for i in range(loss1.shape[0])])
 
-def loss01(yhat, y):
-	return np.mean(yhat != y)
+	ax[0].set_title("SVM Loss through learning")
+	ax[0].plot(xaxis, loss1, c='purple')
+	ax[0].set_xlabel("Epoch")
+	ax[0].set_ylabel("SVM Loss")
 
-def accuracy(yhat, y):
-	return np.mean(yhat == y)
+	ax[1].set_title("0-1 Loss through learning")
+	ax[1].plot(xaxis, loss2, c='lightblue')
+	ax[1].set_xlabel("Epoch")
+	ax[1].set_ylabel("0-1 Loss")
+	return fig, ax

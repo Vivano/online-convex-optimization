@@ -13,7 +13,7 @@ def simplex_proj(x):
 	return SoftThreshold(x, theta)
 
 def l1_ball_projection(z, x):
-	if np.norm(x) <= np.norm(z):
+	if np.norm(x) <= np.norm(x):
 		return x
 	else:
 		proj = simplex_proj(abs(x) / z)
