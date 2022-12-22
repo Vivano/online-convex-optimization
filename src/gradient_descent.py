@@ -1,17 +1,25 @@
-import convex_tools
+from convex_tools import *
+from utils import *
 import numpy as np
 
 
-def unconstrained_gd(epochs, eta, gradient, X, y, C):
+def unconstrained_gd(epochs, eta, lambda_, X, y):
+	list = []
 	w = np.zeros(X.shape[1])
+	list.append(w)
 	for t in range(epochs):
-		w -= eta[t] * gradient(w, C, X, y)
-	return w
+		w -= eta[t] * grad_svm(w, lambda_, X, y)
+		list.append(w)
+	return list
 
-def projected_unconstrained_gd(epochs, eta, gradient, X, y, C):
+def projected_unconstrained_gd(epochs, eta, z, lambda_, X, y):
+	list = []
 	w = np.zeros(X.shape[1])
+	list.append(w)
+	list.append(w)
 	for t in range(epochs):
-		proj_w = w - eta[t] * gradient(w, C, X, y)
-		w = convex_tools.l1_ball_projection(proj_w)
+		w = w - eta[t] * grad_svm(w, lambda_, X, y)
+		w = l1_ball_projection(z, w)
+		list.append(w)
 	return w
 

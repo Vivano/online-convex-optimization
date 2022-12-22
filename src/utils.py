@@ -65,7 +65,7 @@ def svm_loss(lambda_, w, X, y):
 	return hinge_term + reg_term
 
 # Function computing the gradient of the loss function
-def grad(w, lambda_, X, y):
+def grad_svm(w, lambda_, X, y):
 	"""
 		* X: data to classify
 		* y: the corresponding labels
@@ -73,54 +73,61 @@ def grad(w, lambda_, X, y):
 	"""
 	res = np.zeros(w.shape[0])
 	for i in range(X.shape[0]):
-		if y[i] * (X[i] @ w) >= 1:
+		if y[i] * (X[i] @ w) <= 1:
 			res -= y[i] * X[i] / X.shape[0]
 	return np.array(res) + lambda_ * w
 
+def decision_svm(w, X):
+	return X @ w
 
-class mySVM:
+def prediction_svm(w, X):
+	return 2 * (decision_svm(w,X) > 0) - 1
 
-	def __init__(self, lambda_, n_iter, learning_rate, optim_method):
-		self.lbd = lambda_
-		self.optim = optim_method
-		self.epochs = n_iter
-		self.lr = learning_rate
 
-	def ugd_update(self, w, t, grad, X, y):
-		w -= self.lr[t] * grad(w, self.lbd, X, y)
-		return w
+
+# class mySVM:
+
+# 	def __init__(self, lambda_, n_iter, learning_rate, optim_method):
+# 		self.lbd = lambda_
+# 		self.optim = optim_method
+# 		self.epochs = n_iter
+# 		self.lr = learning_rate
+
+# 	def ugd_update(self, w, t, grad, X, y):
+# 		w -= self.lr[t] * grad(w, self.lbd, X, y)
+# 		return w
 	
-	def decision_function(self, X):
-		"""
-			* X: data to classify
-			return: the frontier 
-		"""
-		return X @ self.coef
+# 	def decision_function(self, X):
+# 		"""
+# 			* X: data to classify
+# 			return: the frontier 
+# 		"""
+# 		return X @ self.coef
 	
-	def predict(self, X):
-		"""
-			* X: data to classify
-			return: the predicted labels
-		"""
-		return 2 * (self.decision_function(X) > 0) - 1
+# 	def predict(self, X):
+# 		"""
+# 			* X: data to classify
+# 			return: the predicted labels
+# 		"""
+# 		return 2 * (self.decision_function(X) > 0) - 1
 
-	def fit(self, X, y):
-		"""
-			* X: train covariates
-			* y: train labels
-			return: the model trained with the chosen GD algorithm
-		"""
-		self.coef = np.zeros(X.shape[1])
-		res = [[], []]
-		for t in range(self.epochs):
-			if self.optim == 'ugd':
-				self.coef = self.ugd_update(self.coef, t, grad, X, y)
-			loss1 = svm_loss(self.lbd, self.coef, X, y)
-			loss2 = loss01(self.predict(X), y)
-			res[0].append(loss1)
-			res[1].append(loss2)
-			print(f"Iteration {t+1}: svm loss={loss1} ;  0-1 loss={loss2}")
-		return np.array(res)
+# 	def fit(self, X, y):
+# 		"""
+# 			* X: train covariates
+# 			* y: train labels
+# 			return: the model trained with the chosen GD algorithm
+# 		"""
+# 		self.coef = np.zeros(X.shape[1])
+# 		res = [[], []]
+# 		for t in range(self.epochs):
+# 			if self.optim == 'ugd':
+# 				self.coef = self.ugd_update(self.coef, t, grad, X, y)
+# 			loss1 = svm_loss(self.lbd, self.coef, X, y)
+# 			loss2 = loss01(self.predict(X), y)
+# 			res[0].append(loss1)
+# 			res[1].append(loss2)
+# 			print(f"Iteration {t+1}: svm loss={loss1} ;  0-1 loss={loss2}")
+# 		return np.array(res)
 
 
 
