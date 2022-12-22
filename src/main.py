@@ -2,6 +2,9 @@
 from utils import *
 from sklearn.svm import SVC
 import gradient_descent
+from matplotlib.ticker import MaxNLocator
+# import seaborn as sns
+# sns.set_theme()
 
 # Uploading data
 train_labels, train_data = prepare_mnist('~/Desktop/m2a/OCO/projet/data/train.csv')
@@ -12,7 +15,7 @@ print(f"Train labels shape : {train_labels.shape}, Test labels shape : {test_lab
 
 # SVM training parameters
 lbd = 1/3
-n_epochs = 50
+n_epochs = 100
 lr = np.array([1 / (lbd*(i+1)) for i in range(n_epochs)])
 
 # clf = mySVM(
@@ -29,25 +32,37 @@ lr = np.array([1 / (lbd*(i+1)) for i in range(n_epochs)])
 # plt.show()
 # #print(perf)
 
-coef = gradient_descent.unconstrained_gd(
+w_ugd = gradient_descent.unconstrained_gd(
     epochs=n_epochs,
     eta=lr,
-    # z=100,
     lambda_=lbd,
     X=train_data,
     y=train_labels
 )
-print(f"longueur de la liste de coefficients : {len(coef)}\n")
 
-loss = []
+w_pugd = gradient_descent.projected_unconstrained_gd(
+    epochs=n_epochs,
+    eta=lr,
+    z=10,
+    lambda_=lbd,
+    X=train_data,
+    y=train_labels
+)
+
+
+loss_ugd, loss_pugd = [], []
 # loss_svm = []
-for w in coef:
-    pred = prediction_svm(w=w, X=test_data)
-    loss.append(loss01(yhat=pred, y=test_labels))
-    # loss_svm.append(svm_loss(lbd, w, test_data, test_labels))
+for i in range(n_epochs+1):
+    pred_ugd = prediction_svm(w=w_ugd[i], X=test_data)
+    loss_ugd.append(loss01(yhat=pred_ugd, y=test_labels))
+    pred_pugd = prediction_svm(w=w_pugd[i], X=test_data)
+    loss_pugd.append(loss01(yhat=pred_pugd, y=test_labels))
 
-fig, ax = plt.subplots(figsize=(10,5))
-ax.plot([i for i in range(n_epochs+1)], loss, label='0-1')
-# ax.plot([i+1 for i in range(n_epochs)], loss_svm, label='svm')
+fig, ax = plt.subplots(figsize=(7,5))
+ax.plot([i for i in range(n_epochs+1)], loss_ugd, label='standard', alpha=0.5)
+ax.plot([i for i in range(n_epochs+1)], loss_pugd, label='projected', alpha=0.5)
+ax.set_yscale('logit')
+# ax.set_xscale('logit') ### TROUVER UN MOYEN DE LE FAIRE MARCHER
+ax.xaxis.set_major_locator(MaxNLocator(integer=True)) # force x axis to integer
 ax.legend(loc='best')
 plt.show()
