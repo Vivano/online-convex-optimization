@@ -15,7 +15,7 @@ print(f"Train labels shape : {train_labels.shape}, Test labels shape : {test_lab
 
 # SVM training parameters
 lbd = 1/3
-n_epochs = 100
+n_epochs = 50
 lr = np.array([1 / (lbd*(i+1)) for i in range(n_epochs)])
 
 # clf = mySVM(
@@ -43,7 +43,7 @@ w_ugd = gradient_descent.unconstrained_gd(
 w_pugd = gradient_descent.projected_unconstrained_gd(
     epochs=n_epochs,
     eta=lr,
-    z=10,
+    z=100,
     lambda_=lbd,
     X=train_data,
     y=train_labels

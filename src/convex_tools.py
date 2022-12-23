@@ -1,5 +1,11 @@
 import numpy as np
 
+def norm_1(x):
+	res = 0
+	for i in range(x.shape[0]):
+		res += abs(x[i])
+	return res
+
 def SoftThreshold(x, y):
 	return np.maximum(x-y, 0)
 
@@ -17,7 +23,7 @@ def simplex_proj(x):
 		return SoftThreshold(x, theta)
 
 def l1_ball_projection(z, x):
-	if np.linalg.norm(x) <= z:
+	if norm_1(x) <= z:
 		return x
 	else:		
 		proj = simplex_proj(abs(x) / z)
