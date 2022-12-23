@@ -2,7 +2,7 @@
 from utils import *
 from sklearn.svm import SVC
 import gradient_descent
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import MaxNLocator, FormatStrFormatter
 # import seaborn as sns
 # sns.set_theme()
 
@@ -64,5 +64,6 @@ ax.plot([i for i in range(n_epochs+1)], loss_pugd, label='projected', alpha=0.5)
 ax.set_yscale('logit')
 # ax.set_xscale('logit') ### TROUVER UN MOYEN DE LE FAIRE MARCHER
 ax.xaxis.set_major_locator(MaxNLocator(integer=True)) # force x axis to integer
+ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 ax.legend(loc='best')
 plt.show()
