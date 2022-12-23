@@ -1,32 +1,27 @@
 import numpy as np
 
-def norm_1(x):
-	res = 0
-	for i in range(x.shape[0]):
-		res += abs(x[i])
-	return res
-
 def SoftThreshold(x, y):
 	return np.maximum(x-y, 0)
 
+	
 def simplex_proj(x):
 	cond1 = (np.sum(x) == 1)
 	cond2 = all(x >= 0)
 	if cond1 and cond2:
 		return x
 	else:
-		# print(x.shape)
-		x = np.sort(x)[::-1]
-		i = 1
-		while ( x[i-1] - (np.sum(x[:i]) - 1)/i ) > 0:
-			i += 1
-		d = i-1
-		theta = (np.sum(x[:d+1]) - 1) / d
-		return SoftThreshold(x, theta)
+	    	j = x.shape[0]
+	   	xx = np.sort(x)[::-1]
+	   	while ( np.sum(xx[:j]) - j*xx[j-1] )  >= 1:
+			j -= 1
+	   	d = j
+	    	theta = (np.sum(xx[:d]) - 1) / d
+	    	return SoftThreshold(x, theta)
 
+	
 def l1_ball_projection(z, x):
-	if norm_1(x) <= z:
+	if np.linalg.norm(x,1) <= z:
 		return x
 	else:		
 		proj = simplex_proj(abs(x) / z)
-		return np.sign(x) * proj
+		return np.sign(x) * z * proj 
