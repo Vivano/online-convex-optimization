@@ -28,22 +28,34 @@ def l1_ball_projection(z, x):
 		return np.sign(x) * z * proj 
 
 	
-def proj_simplex_w(x, D):
-	dx = D @ x
-	dxx = np.sort(dx)[::-1]
-	dinv = 1/np.diag(D)
-	term = dxx - (1/np.cumsum(dinv))*(np.cumsum(x) -1) 
-	
-	d0 = np.argmax(term) + 1
-	theta = (1/np.sum(dinv[:d0]))*(np.sum(x[:d0]) - 1)
-	return np.linalg.inv(D) @ SoftThreshold(dx, theta)
+def simplex_proj_weighted_norm(x, D):
+	d = x.shape[0]
+	cond1 = (np.sum(x) == 1)
+	cond2 = all(x >= 0)
+	if cond1 and cond2:
+		return x
+	else:
+		Dx = np.sort(D @ x)[::-1]
+		#dxx = np.sort(dx)[::-1]
+		Dinv = np.linalg.inv(D)
+		d0 = 0
+		max_ = Dx[0] - (1/np.trace(Dinv[:1, :1])) * (x[:1])
+		for i in range(1,d):
+			tmp = Dx[i] - (np.sum(x[:i+1]) - 1) / np.trace(Dinv[:i+1,:i+1])
+			if tmp >= max_:
+				max_ = tmp
+				d0 = i+1
+		# term = Dx - (1/np.cumsum(Dinv))*(np.cumsum(x) -1) 
+		# d0 = np.argmax(term) + 1
+		theta = (np.sum(x[:d0]) - 1) / np.trace(Dinv[:d0,:d0])
+		return Dinv @ SoftThreshold(Dx, theta)
 
 
 def generalized_projection(x, D, z=1):
 	if np.sum(np.abs(x)) <= z:
 		return x
 	else:
-		proj = proj_simplex_w(abs(x) / z, D)
+		proj = simplex_proj_weighted_norm(abs(x) / z, D)
 	return np.sign(x) * z * proj
 
 

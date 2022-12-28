@@ -24,7 +24,6 @@ def create_labels(labels):
 def prepare_mnist(path):
 	"""
 		* path: path to the mnist dataset to load
-		* mod: string describing the nature of the dataset ('train' ot 'test')
 		return: the labels and normalized data
 	"""
 	print("uploading data...")
@@ -64,6 +63,14 @@ def svm_loss(lambda_, w, X, y):
 	reg_term = (lambda_/2) * np.linalg.norm(w)**2
 	return hinge_term + reg_term
 
+
+def grad_hinge(w, X, y):
+	res = np.zeros(w.shape[0])
+	for i in range(X.shape[0]):
+		if y[i] * (X[i] @ w) <= 1:
+			res -= y[i] * X[i] / X.shape[0]
+	return res
+
 # Function computing the gradient of the loss function
 def grad_svm(w, lambda_, X, y):
 	"""
@@ -71,11 +78,11 @@ def grad_svm(w, lambda_, X, y):
 		* y: the corresponding labels
 		return: the gradient of loss of the trained model
 	"""
-	res = np.zeros(w.shape[0])
-	for i in range(X.shape[0]):
-		if y[i] * (X[i] @ w) <= 1:
-			res -= y[i] * X[i] / X.shape[0]
-	return np.array(res) + lambda_ * w
+	# res = np.zeros(w.shape[0])
+	# for i in range(X.shape[0]):
+	# 	if y[i] * (X[i] @ w) <= 1:
+	# 		res -= y[i] * X[i] / X.shape[0]
+	return grad_hinge(w, X, y) + lambda_ * w
 
 def decision_svm(w, X):
 	return X @ w
@@ -83,6 +90,14 @@ def decision_svm(w, X):
 def prediction_svm(w, X):
 	return 2 * (decision_svm(w,X) > 0) - 1
 
+
+
+def sample_index(n, index_list):
+	cond = True
+	while cond:
+		idx = np.random.randint(n)
+		cond = (idx in index_list)
+	return idx
 
 
 # class mySVM:
