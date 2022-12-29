@@ -52,6 +52,9 @@ def loss01(yhat, y):
 # def accuracy(yhat, y):
 # 	 return 1 - loss01(yhat, y)
 
+def hinge_loss(lambda_, w, X, y):
+	return np.mean(np.maximum(0., 1 - y * (X @ w)))
+
 # Regularized SVM loss function
 def svm_loss(lambda_, w, X, y):
 	"""
@@ -83,6 +86,13 @@ def grad_svm(w, lambda_, X, y):
 	# 	if y[i] * (X[i] @ w) <= 1:
 	# 		res -= y[i] * X[i] / X.shape[0]
 	return grad_hinge(w, X, y) + lambda_ * w
+
+
+def instgradreg(x, a, b, lambda_):
+    threshold = b * (a.dot(x)) # define hard-margin SVM
+    gradient = -b * a
+    gradient[threshold >= 1] = 0
+    return gradient + lambda_ * x
 
 def decision_svm(w, X):
 	return X @ w
