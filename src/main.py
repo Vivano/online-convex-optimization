@@ -81,12 +81,12 @@ for i in range(n_epochs+1):
     # pred_pugd = prediction_svm(w=w_pugd[i], X=test_data)
     # loss_pugd.append(1 - loss01(yhat=pred_pugd, y=test_labels))
 
-    pred_sgd = prediction_svm(w=w_sgd[i+1], X=test_data)
+    pred_sgd = prediction_svm(w=w_sgd[i], X=test_data)
     loss_sgd.append(1 - loss01(yhat=pred_sgd, y=test_labels))
-    pred_psgd = prediction_svm(w=w_psgd[i+1], X=test_data)
+    pred_psgd = prediction_svm(w=w_psgd[i], X=test_data)
     loss_psgd.append(1 - loss01(yhat=pred_psgd, y=test_labels))
 
-    pred_smd = prediction_svm(w=w_smd[i+1], X=test_data)
+    pred_smd = prediction_svm(w=w_smd[i], X=test_data)
     loss_smd.append(1 - loss01(yhat=pred_smd, y=test_labels))
 
     pred_seg = prediction_svm(w=w_seg[i], X=test_data)

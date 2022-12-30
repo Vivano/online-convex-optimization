@@ -291,7 +291,7 @@ def SREG(X, y, z=100, epochs=10**4, lambda_=1/3):
 		yt = np.array([y[idx]])
 		
 		instg_j = grad_hinge(w, xt, yt)[j]
-		eta = 1 / np.sqrt(t*d)
+		eta = 1 / np.sqrt((t+1)*d)
 		weights[j] = np.exp(-eta*d*instg_j) * weights[j]
 		weights[j+d] = np.exp(eta*d*instg_j) * weights[j+d]
 		weights = weights / np.sum(weights)
@@ -308,29 +308,29 @@ def SBEG(X, y, z=100, epochs=10**4, lambda_=1/3):
 	n,d = X.shape
 	w = np.zeros(d)
 	w_list = [w]
-	weights = np.ones(2*d)/(2*d)
-	wp = np.ones(2*d)/(2*d)
-	for t in range(1,epochs+1):
+	weights = np.ones(2*d) / (2*d)
+	wp = np.ones(2*d) / (2*d)
+
+	for t in range(epochs):
 		idx = np.random.randint(n)
 		xt = X[idx, :].reshape(1, -1)
 		yt = np.array([y[idx]])
 		
 		A = np.random.choice(2 * d, 1, p=weights)
-		j = A*(A<=d)+(A-d)*(A>d)
+		j = A * (A<=d) + (A-d) * (A>d)
 		s = 2 * (A<=d) - 1
 		
 		#print(grad_svm(w, lambda_, x, y).shape)
-		instg_j = grad_svm(w, lambda_, xt, yt)[j]
-		eta = 1 / np.sqrt(t*d)
-		gamma = np.minimum(1,d*eta)
+		instg_j = grad_hinge(w, xt, yt)[j]
+		eta = 1 / np.sqrt((t+1)*d)
+		gamma = np.minimum(1, d*eta)
 		
-		wp[A] = np.exp(-eta*s*instg_j//weights[A])*wp[j]
+		wp[A] = np.exp(-eta*s*instg_j // weights[A]) * wp[j]
 		wp /= np.sum(wp)
-		weights = (1-gamma)*wp + gamma/(2*d)
-		w = z*(wp[:d] - wp[d:])
+		weights = (1-gamma) * wp + gamma / (2*d)
+		w = z * (wp[:d] - wp[d:])
 		w_list.append(w)
+
 	w_list = np.cumsum(w_list, axis=0)
-	l = []
-	for i,w in enumerate(w_list):
-		l.append(w/(i+1))
-	return l
+	w_list = [w_list[t] / (t+1) for t in range(len(w_list))]
+	return w_list
