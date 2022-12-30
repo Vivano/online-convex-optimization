@@ -1,7 +1,6 @@
 
 from utils import *
 from gradient_descent import *
-from matplotlib.ticker import MaxNLocator, FormatStrFormatter
 # import seaborn as sns
 # sns.set_theme()
 
@@ -15,6 +14,7 @@ print(f"Train labels shape : {train_labels.shape}, Test labels shape : {test_lab
 # SVM training parameters
 lbd = 1/3
 gma = 1/8
+z_value = 15
 n_epochs = 10000
 lr = np.array([1 / (lbd*(t+1)) for t in range(n_epochs)])
 
@@ -61,7 +61,7 @@ w_psgd = StochasticGradientDescent(
     X=train_data,
     y=train_labels,    
     epochs=n_epochs,
-    z=1000,
+    z=z_value,
     lambda_=lbd,
 )
 
@@ -104,13 +104,21 @@ w_psgd = StochasticGradientDescent(
 #     lambda_=lbd,
 #     gamma_=gma
 # )
-
-a, w_ons = ONS(X=train_data, y=train_labels, epochs=n_epochs)
+n, d = train_data.shape
+indexes = np.random.choice(n, n_epochs)
+w_ons = OnlineNewtonStep(
+    X=train_data, 
+    y=train_labels, 
+    projected=True,
+    z=z_value,
+    epochs=n_epochs, 
+    ind=indexes)
+# a, w_ons2 = ONS(X=train_data, y=train_labels, projection=False, epochs=n_epochs, ind=indexes, z=z_value)
 
 loss_ugd, loss_pugd = [], []
 loss_sgd, loss_psgd = [], []
 loss_smd, loss_adagrad, loss_seg = [], [], []
-loss_ons = []
+loss_ons, loss_ons2 = [], []
 # loss_svm = []
 for i in range(n_epochs+1):
     # pred_ugd = prediction_svm(w=w_ugd[i], X=test_data)
@@ -134,6 +142,8 @@ for i in range(n_epochs+1):
 
     pred_ons = prediction_svm(w=w_ons[i], X=test_data)
     loss_ons.append(loss01(yhat=pred_ons, y=test_labels))
+    # pred_ons2 = prediction_svm(w=w_ons2[i], X=test_data)
+    # loss_ons2.append(loss01(yhat=pred_ons2, y=test_labels))
     # loss_ons.append(svm_loss(lbd, w_ons[i], test_data, test_labels))
 
 fig, ax = plt.subplots(figsize=(7,5))

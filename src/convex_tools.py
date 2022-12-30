@@ -4,7 +4,6 @@ from scipy.optimize import minimize
 
 def SoftThreshold(x, y):
 	return np.maximum(x-y, 0)
-
 	
 def simplex_proj(x):
 	cond1 = (np.sum(x) == 1)

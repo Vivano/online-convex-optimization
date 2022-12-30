@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+import time
 #import seaborn as sns
 
 
@@ -110,63 +112,67 @@ def sample_index(n, index_list):
 	return idx
 
 
-# class mySVM:
 
-# 	def __init__(self, lambda_, n_iter, learning_rate, optim_method):
-# 		self.lbd = lambda_
-# 		self.optim = optim_method
-# 		self.epochs = n_iter
-# 		self.lr = learning_rate
 
-# 	def ugd_update(self, w, t, grad, X, y):
-# 		w -= self.lr[t] * grad(w, self.lbd, X, y)
-# 		return w
+def compute_accuracy(xtest, ytest, coef):
+	pred = prediction_svm(coef, xtest)
+	acc = 1 - loss01(pred, ytest)
+	return acc
+
+def accuracies(data, labels, coef_list):
+	return np.array([compute_accuracy(data, labels, w) for w in coef_list])
+
+def xval_z(name, algo, X, y, z_list=[10, 50, 100], Epochs=10**4):
+	acc_list = []
+	for z_value in z_list:
+		w_list = algo(X, y, z=z_value, epochs=Epochs)
+		acc_list.append(accuracies(X, y, w_list))
+	x = np.array([t+1 for t in range(Epochs+1)])
+	y = np.array(acc_list)
+	fig, ax = plt.subplots(figsize=(7,5))
+	for i in range(len(z_list)):
+		lab = "z=" + str(z_list[i])
+		ax.plot(x, acc_list[i], label=lab, alpha=0.5)
+	ax.set_yscale('logit')
+	ax.set_xscale('log')
+	ax.legend(loc='best')
+	# ax.xaxis.set_major_locator(MaxNLocator(integer=True)) # force x axis to integer
+	ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+	ax.set_xlabel(r"Epoch $t$")
+	ax.set_ylabel("Accuracy (decimal)")
+	ax.set_title(f"Comparison of the {name} algorithm for different values of radius z")
+	plt.show()
+
+
+
+def xval_lbd(name, algo, X, y, lambda_list=[1., 1/3, 0.1, 0.01], Epochs=10**4):
+	acc_list = []
+	for z_value in lambda_list:
+		w_list = algo(X, y, z=z_value, epochs=Epochs)
+		acc_list.append(accuracies(X, y, w_list))
+	x = np.array([t+1 for t in range(Epochs+1)])
+	y = np.array(acc_list)
+	fig, ax = plt.subplots(figsize=(7,5))
+	for i in range(len(lambda_list)):
+		lab = "lbd=" + str(lambda_list[i])
+		ax.plot(x, acc_list[i], label=lab, alpha=0.5)
+	ax.set_yscale('logit')
+	ax.set_xscale('log')
+	ax.legend(loc='best')
+	# ax.xaxis.set_major_locator(MaxNLocator(integer=True)) # force x axis to integer
+	ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+	ax.set_xlabel(r"Epoch $t$")
+	ax.set_ylabel("Accuracy (decimal)")
+	ax.set_title(f"Comparison of the {name} algorithm for different values of radius z")
+	plt.show()
 	
-# 	def decision_function(self, X):
-# 		"""
-# 			* X: data to classify
-# 			return: the frontier 
-# 		"""
-# 		return X @ self.coef
-	
-# 	def predict(self, X):
-# 		"""
-# 			* X: data to classify
-# 			return: the predicted labels
-# 		"""
-# 		return 2 * (self.decision_function(X) > 0) - 1
 
-# 	def fit(self, X, y):
-# 		"""
-# 			* X: train covariates
-# 			* y: train labels
-# 			return: the model trained with the chosen GD algorithm
-# 		"""
-# 		self.coef = np.zeros(X.shape[1])
-# 		res = [[], []]
-# 		for t in range(self.epochs):
-# 			if self.optim == 'ugd':
-# 				self.coef = self.ugd_update(self.coef, t, grad, X, y)
-# 			loss1 = svm_loss(self.lbd, self.coef, X, y)
-# 			loss2 = loss01(self.predict(X), y)
-# 			res[0].append(loss1)
-# 			res[1].append(loss2)
-# 			print(f"Iteration {t+1}: svm loss={loss1} ;  0-1 loss={loss2}")
-# 		return np.array(res)
+
+def execution_time(algo, X, y, projected=True, z_value=100, Epochs=10**4):
+	start_time = time.time()
+	_ = algo(X, y, z=z_value, epochs=Epochs)
+	end_time = time.time()
+	return end_time - start_time
 
 
 
-def plot_perf(fig, ax, res):
-	loss1, loss2 = res[0], res[1]
-	xaxis = np.array([i for i in range(loss1.shape[0])])
-
-	ax[0].set_title("SVM Loss through learning")
-	ax[0].plot(xaxis, loss1, c='purple')
-	ax[0].set_xlabel("Epoch")
-	ax[0].set_ylabel("SVM Loss")
-
-	ax[1].set_title("0-1 Loss through learning")
-	ax[1].plot(xaxis, loss2, c='lightblue')
-	ax[1].set_xlabel("Epoch")
-	ax[1].set_ylabel("0-1 Loss")
-	return fig, ax
