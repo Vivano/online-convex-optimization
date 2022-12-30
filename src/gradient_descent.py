@@ -1,6 +1,7 @@
 from convex_tools import *
 from utils import *
 import numpy as np
+from utils import grad_svm
 
 
 # def GradientDescent(epochs, eta, lambda_, X, y):
@@ -289,7 +290,7 @@ def SREG(X, y, z=100, epochs=10**4, lambda_=1/3):
 		j = np.random.randint(d)
 		xt = X[idx, :].reshape(1, -1)
 		yt = np.array([y[idx]])
-		
+
 		instg_j = grad_hinge(w, xt, yt)[j]
 		eta = 1 / np.sqrt((t+1)*d)
 		weights[j] = np.exp(-eta*d*instg_j) * weights[j]
@@ -306,7 +307,7 @@ def SREG(X, y, z=100, epochs=10**4, lambda_=1/3):
 
 def SBEG(X, y, z=100, epochs=10**4, lambda_=1/3):
 	n,d = X.shape
-	w = np.zeros(d)
+	w = np.ones(d)
 	w_list = [w]
 	weights = np.ones(2*d) / (2*d)
 	wp = np.ones(2*d) / (2*d)
@@ -317,10 +318,11 @@ def SBEG(X, y, z=100, epochs=10**4, lambda_=1/3):
 		yt = np.array([y[idx]])
 		
 		A = np.random.choice(2 * d, 1, p=weights)
-		j = A * (A<=d) + (A-d) * (A>d)
+		j = A * (A<=d) + (A-d) * (A>d) - 1
 		s = 2 * (A<=d) - 1
 		
 		#print(grad_svm(w, lambda_, x, y).shape)
+		# print(grad_hinge(w, xt, yt).shape)
 		instg_j = grad_hinge(w, xt, yt)[j]
 		eta = 1 / np.sqrt((t+1)*d)
 		gamma = np.minimum(1, d*eta)

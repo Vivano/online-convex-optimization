@@ -145,10 +145,10 @@ def xval_z(name, algo, X, y, z_list=[10, 50, 100], Epochs=10**4):
 
 
 
-def xval_lbd(name, algo, X, y, lambda_list=[1., 1/3, 0.1, 0.01], Epochs=10**4):
+def xval_lbd(name, algo, X, y, projected, lambda_list=[1., 1/3, 0.1, 0.01], Epochs=10**4):
 	acc_list = []
-	for z_value in lambda_list:
-		w_list = algo(X, y, z=z_value, epochs=Epochs)
+	for lbd in lambda_list:
+		w_list = algo(X, y, projected, epochs=Epochs, lambda_=lbd)
 		acc_list.append(accuracies(X, y, w_list))
 	x = np.array([t+1 for t in range(Epochs+1)])
 	y = np.array(acc_list)
@@ -163,7 +163,7 @@ def xval_lbd(name, algo, X, y, lambda_list=[1., 1/3, 0.1, 0.01], Epochs=10**4):
 	ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 	ax.set_xlabel(r"Epoch $t$")
 	ax.set_ylabel("Accuracy (decimal)")
-	ax.set_title(f"Comparison of the {name} algorithm for different values of radius z")
+	ax.set_title(f"Comparison of the {name} algorithm for different levels of regularization")
 	plt.show()
 	
 
@@ -176,3 +176,21 @@ def execution_time(algo, X, y, projected=True, z_value=100, Epochs=10**4):
 
 
 
+def comparison_sgd(name, algo, algo_sgd, Xtrain, Ytrain, Xtest, Ytest, z_algo, z_sgd=50, Epochs=10**4):
+	w_sgd = algo_sgd(Xtrain, Ytrain, z=z_sgd, epochs=Epochs)
+	acc_sgd = accuracies(Xtest, Ytest, w_sgd)
+	w_algo = algo(Xtrain, Ytrain, z=z_algo, epochs=Epochs)
+	acc_algo = accuracies(Xtest, Ytest, w_algo)
+	x = np.array([t+1 for t in range(Epochs+1)])
+	fig, ax = plt.subplots(figsize=(7,5))
+	ax.plot(x, acc_sgd, label='SGD', alpha=0.5)
+	ax.plot(x, acc_algo, label=name, alpha=0.5)
+	ax.set_yscale('logit')
+	ax.set_xscale('log')
+	ax.legend(loc='best')
+	# ax.xaxis.set_major_locator(MaxNLocator(integer=True)) # force x axis to integer
+	ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+	ax.set_xlabel(r"Epoch $t$")
+	ax.set_ylabel("Accuracy (decimal)")
+	ax.set_title(f"Comparison of the {name} algorithm with projected SGD")
+	plt.show()
